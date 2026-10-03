@@ -47,6 +47,11 @@ def cities_for_state(state):
 
 
 @lru_cache(maxsize=1)
+def all_cities_by_state():
+    return {state: cities_for_state(state) for state in sorted(STATE_NAMES)}
+
+
+@lru_cache(maxsize=1)
 def stations():
     with (DATA_DIR / "stations.csv").open(newline="", encoding="utf-8") as source:
         return [dict(row, latitude=float(row["latitude"]), longitude=float(row["longitude"]),

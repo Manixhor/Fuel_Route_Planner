@@ -35,6 +35,8 @@ class ApiTests(SimpleTestCase):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Fuel Route Planner")
+        self.assertContains(response, 'id="cities-by-state"')
+        self.assertContains(response, "Phoenix")
 
     def test_city_dropdown_uses_local_places(self):
         response = self.client.get("/api/cities/?state=TX")

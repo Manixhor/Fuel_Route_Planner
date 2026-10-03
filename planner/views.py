@@ -4,11 +4,14 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from .service import PlanError, STATE_NAMES, cities_for_state, plan
+from .service import PlanError, STATE_NAMES, all_cities_by_state, cities_for_state, plan
 
 
 def map_page(request):
-    return render(request, "planner/map.html", {"states": sorted(STATE_NAMES.items(), key=lambda item: item[1])})
+    return render(request, "planner/map.html", {
+        "states": sorted(STATE_NAMES.items(), key=lambda item: item[1]),
+        "cities_by_state": all_cities_by_state(),
+    })
 
 
 def cities(request):

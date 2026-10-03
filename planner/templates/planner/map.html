@@ -19,28 +19,22 @@
   </form>
   <div id="result" aria-live="polite"><p class="muted">Choose two US cities, then plan a route.</p></div>
 </aside><div id="map" role="img" aria-label="Route map"></div></div>
+{{ cities_by_state|json_script:"cities-by-state" }}
 <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
 <script>
 const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[-98,39],zoom:3});
 map.addControl(new maplibregl.NavigationControl(),'top-right');
 let markers=[];
 const result=document.getElementById('result'),button=document.getElementById('submit');
-async function loadCities(prefix){
+const citiesByState=JSON.parse(document.getElementById('cities-by-state').textContent);
+function loadCities(prefix){
   const state=document.getElementById(`${prefix}-state`).value;
   const citySelect=document.getElementById(`${prefix}-city`);
   const initialCity=citySelect.dataset.initialCity;
-  citySelect.disabled=true;
-  citySelect.replaceChildren(new Option('Loading cities…',''));
-  try{
-    const response=await fetch(`/api/cities/?state=${encodeURIComponent(state)}`);
-    if(!response.ok)throw Error('Could not load cities');
-    const data=await response.json();
-    if(document.getElementById(`${prefix}-state`).value!==state)return;
-    citySelect.replaceChildren(new Option('Select city',''),...data.cities.map(city=>new Option(city,city)));
-    if(initialCity && data.cities.includes(initialCity))citySelect.value=initialCity;
-    citySelect.dataset.initialCity='';
-  }catch(error){citySelect.replaceChildren(new Option('Could not load cities',''))}
-  finally{if(document.getElementById(`${prefix}-state`).value===state)citySelect.disabled=false}
+  const cities=citiesByState[state]||[];
+  citySelect.replaceChildren(new Option('Select city',''),...cities.map(city=>new Option(city,city)));
+  if(initialCity && cities.includes(initialCity))citySelect.value=initialCity;
+  citySelect.dataset.initialCity='';
 }
 for(const prefix of ['start','finish']){
   document.getElementById(`${prefix}-state`).addEventListener('change',()=>{document.getElementById(`${prefix}-city`).dataset.initialCity='';loadCities(prefix)});
