@@ -73,7 +73,7 @@ The price CSV has 8,151 rows, including Canadian entries and duplicate OPIS IDs.
 ## Five-minute demo outline
 
 1. Show the map page at `http://127.0.0.1:8000/` with Dallas → Atlanta. Point out the route and fuel-stop markers.
-2. Send the same JSON request in Postman. Show `route.geometry`, `fuel_stops`, `fuel_summary`, and `routing_api_calls: 1`.
+2. Send the same JSON request in Postman. Show `route.geometry`, `fuel_stops`, `fuel_summary`, and `routing_api_calls_per_uncached_request: 1`.
 3. Send Los Angeles → Las Vegas to show a one-tank trip with no roadside stops and a nonzero estimated trip cost.
 4. Briefly show `planner/service.py`: offline station matching, the one OSRM request, and the purchasing algorithm.
 5. Mention the city-centroid accuracy limit and that a production deployment would use real station coordinates.

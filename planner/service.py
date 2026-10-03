@@ -227,5 +227,5 @@ def plan(start, finish, initial_gallons=TANK_GALLONS):
                         "Stations are located by city centroid because the provided CSV has no station coordinates.",
                         "Stop proximity and mile markers are approximate; detour mileage and cost are excluded.",
                         "Optimization minimizes purchases along the returned route, not route choice."],
-        "routing_api_calls": 1,
+        "routing_api_calls_per_uncached_request": 1,
     }

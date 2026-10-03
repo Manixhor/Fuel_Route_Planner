@@ -48,7 +48,7 @@ class ApiTests(SimpleTestCase):
         body = response.json()
         self.assertEqual(body["route"]["geometry"]["type"], "LineString")
         self.assertGreater(body["fuel_summary"]["total_money_spent_usd"], 0)
-        self.assertEqual(body["routing_api_calls"], 1)
+        self.assertEqual(body["routing_api_calls_per_uncached_request"], 1)
         mock_route.assert_called_once()
 
     def test_invalid_city_is_rejected_before_routing(self):
