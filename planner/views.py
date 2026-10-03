@@ -4,11 +4,18 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from .service import PlanError, plan
+from .service import PlanError, STATE_NAMES, cities_for_state, plan
 
 
 def map_page(request):
-    return render(request, "planner/map.html")
+    return render(request, "planner/map.html", {"states": sorted(STATE_NAMES.items(), key=lambda item: item[1])})
+
+
+def cities(request):
+    state = request.GET.get("state", "").upper()
+    if state not in STATE_NAMES:
+        return JsonResponse({"error": "Choose a valid US state"}, status=400)
+    return JsonResponse({"cities": cities_for_state(state)})
 
 
 def health(request):

@@ -36,6 +36,11 @@ class ApiTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Fuel Route Planner")
 
+    def test_city_dropdown_uses_local_places(self):
+        response = self.client.get("/api/cities/?state=TX")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Dallas", response.json()["cities"])
+
     @patch("planner.service.route")
     def test_route_response_has_map_stops_and_cost(self, mock_route):
         mock_route.return_value = {

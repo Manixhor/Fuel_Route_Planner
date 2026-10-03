@@ -12,7 +12,7 @@ python3.12 -m venv .venv
 .venv/bin/python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000/` for the map, or use the API from Postman. No database migration or API key is needed. Internet access is needed for the OSRM demo route service and OpenFreeMap map tiles.
+Open `http://127.0.0.1:8000/` for the map, or use the API from Postman. The demo page has a state dropdown and city suggestions loaded locally. No database migration or API key is needed. Internet access is needed for the OSRM demo route service and OpenFreeMap map tiles.
 
 ## API
 

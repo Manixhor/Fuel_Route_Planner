@@ -6,15 +6,15 @@
   <title>Fuel Route Planner</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css">
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#17263c;font:16px/1.45 system-ui,-apple-system,sans-serif}header{background:#15324a;color:white;padding:20px 28px}header h1{margin:0;font-size:24px}header p{margin:4px 0 0;color:#c4d9e5}.layout{display:grid;grid-template-columns:minmax(290px,360px) 1fr;min-height:calc(100vh - 88px)}aside{padding:22px;background:white;box-shadow:2px 0 8px #142b3e16;z-index:1}label{display:block;font-weight:650;margin:14px 0 5px}input{width:100%;padding:10px;border:1px solid #b8c8d4;border-radius:6px;font:inherit}.row{display:grid;grid-template-columns:1fr 70px;gap:8px}button{width:100%;margin-top:20px;padding:12px;border:0;border-radius:6px;background:#087d70;color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6}.metric{margin-top:20px;padding:15px;background:#eaf5f2;border-radius:8px}.metric strong{font-size:26px;color:#075c52}.stop{padding:12px 0;border-bottom:1px solid #e0e8ed}.muted{color:#5c6f7e;font-size:14px}.error{color:#a62020;padding:12px 0}#map{height:calc(100vh - 88px);min-height:450px}@media(max-width:750px){.layout{display:block}#map{height:55vh;min-height:350px}}
+    *{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#17263c;font:16px/1.45 system-ui,-apple-system,sans-serif}header{background:#15324a;color:white;padding:20px 28px}header h1{margin:0;font-size:24px}header p{margin:4px 0 0;color:#c4d9e5}.layout{display:grid;grid-template-columns:minmax(290px,360px) 1fr;min-height:calc(100vh - 88px)}aside{padding:22px;background:white;box-shadow:2px 0 8px #142b3e16;z-index:1}label{display:block;font-weight:650;margin:14px 0 5px}input,select{width:100%;padding:10px;border:1px solid #b8c8d4;border-radius:6px;background:white;font:inherit}.row{display:grid;grid-template-columns:1fr 150px;gap:8px}button{width:100%;margin-top:20px;padding:12px;border:0;border-radius:6px;background:#087d70;color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6}.metric{margin-top:20px;padding:15px;background:#eaf5f2;border-radius:8px}.metric strong{font-size:26px;color:#075c52}.stop{padding:12px 0;border-bottom:1px solid #e0e8ed}.muted{color:#5c6f7e;font-size:14px}.error{color:#a62020;padding:12px 0}#map{height:calc(100vh - 88px);min-height:450px}@media(max-width:750px){.layout{display:block}#map{height:55vh;min-height:350px}}
   </style>
 </head>
 <body>
 <header><h1>Fuel Route Planner</h1><p>US driving routes and cost-aware fuel stops</p></header>
 <div class="layout"><aside>
   <form id="route-form">
-    <label for="start-city">Start</label><div class="row"><input id="start-city" value="Dallas" required aria-label="Start city"><input id="start-state" value="TX" maxlength="2" required aria-label="Start state"></div>
-    <label for="finish-city">Finish</label><div class="row"><input id="finish-city" value="Atlanta" required aria-label="Finish city"><input id="finish-state" value="GA" maxlength="2" required aria-label="Finish state"></div>
+    <label for="start-city">Start</label><div class="row"><input id="start-city" list="start-cities" value="Dallas" required aria-label="Start city" autocomplete="off"><datalist id="start-cities"></datalist><select id="start-state" required aria-label="Start state">{% for code, name in states %}<option value="{{ code }}"{% if code == "TX" %} selected{% endif %}>{{ code }} — {{ name }}</option>{% endfor %}</select></div>
+    <label for="finish-city">Finish</label><div class="row"><input id="finish-city" list="finish-cities" value="Atlanta" required aria-label="Finish city" autocomplete="off"><datalist id="finish-cities"></datalist><select id="finish-state" required aria-label="Finish state">{% for code, name in states %}<option value="{{ code }}"{% if code == "GA" %} selected{% endif %}>{{ code }} — {{ name }}</option>{% endfor %}</select></div>
     <button id="submit" type="submit">Find route and fuel stops</button>
   </form>
   <div id="result" aria-live="polite"><p class="muted">Choose two US cities, then plan a route.</p></div>
@@ -25,6 +25,18 @@ const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.o
 map.addControl(new maplibregl.NavigationControl(),'top-right');
 let markers=[];
 const result=document.getElementById('result'),button=document.getElementById('submit');
+async function loadCities(prefix){
+  const state=document.getElementById(`${prefix}-state`).value;
+  const list=document.getElementById(`${prefix}-cities`);
+  const response=await fetch(`/api/cities/?state=${encodeURIComponent(state)}`);
+  if(!response.ok)return;
+  const data=await response.json();
+  list.replaceChildren(...data.cities.map(city=>{const option=document.createElement('option');option.value=city;return option}));
+}
+for(const prefix of ['start','finish']){
+  document.getElementById(`${prefix}-state`).addEventListener('change',()=>{document.getElementById(`${prefix}-city`).value='';loadCities(prefix)});
+  loadCities(prefix);
+}
 function drawRoute(data){
   const geometry=data.route.geometry;
   const feature={type:'Feature',properties:{},geometry};
