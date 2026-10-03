@@ -6,7 +6,34 @@
   <title>Fuel Route Planner</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css">
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#17263c;font:16px/1.45 system-ui,-apple-system,sans-serif}header{background:#15324a;color:white;padding:20px 28px}header h1{margin:0;font-size:24px}header p{margin:4px 0 0;color:#c4d9e5}.layout{display:grid;grid-template-columns:minmax(290px,360px) 1fr;min-height:calc(100vh - 88px)}aside{padding:22px;background:white;box-shadow:2px 0 8px #142b3e16;z-index:1}label{display:block;font-weight:650;margin:14px 0 5px}input,select{width:100%;padding:10px;border:1px solid #b8c8d4;border-radius:6px;background:white;font:inherit}.row{display:grid;grid-template-columns:1fr 150px;gap:8px}button{width:100%;margin-top:20px;padding:12px;border:0;border-radius:6px;background:#087d70;color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6}.metric{margin-top:20px;padding:15px;background:#eaf5f2;border-radius:8px}.metric strong{font-size:26px;color:#075c52}.stop{padding:12px 0;border-bottom:1px solid #e0e8ed}.muted{color:#5c6f7e;font-size:14px}.error{color:#a62020;padding:12px 0}#map{height:calc(100vh - 88px);min-height:450px}@media(max-width:750px){.layout{display:block}#map{height:55vh;min-height:350px}}
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; background: #f3f6f8; color: #17263c; font: 16px/1.45 system-ui, -apple-system, sans-serif; }
+    header { background: #15324a; color: white; padding: 20px 28px; }
+    header h1 { margin: 0; font-size: 24px; }
+    header p { margin: 4px 0 0; color: #c4d9e5; }
+    .layout { display: grid; grid-template-columns: minmax(320px, 360px) minmax(0, 1fr); min-height: 0; }
+    aside { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 22px; background: white; box-shadow: 2px 0 8px #142b3e16; z-index: 1; }
+    label { display: block; font-weight: 650; margin: 14px 0 5px; }
+    select { min-width: 0; width: 100%; padding: 10px; border: 1px solid #b8c8d4; border-radius: 6px; background: white; font: inherit; }
+    .row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 8px; }
+    button { width: 100%; margin-top: 20px; padding: 12px; border: 0; border-radius: 6px; background: #087d70; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .6; }
+    .metric { margin-top: 20px; padding: 15px; background: #eaf5f2; border-radius: 8px; }
+    .metric strong { font-size: 26px; color: #075c52; }
+    .stop { padding: 12px 0; border-bottom: 1px solid #e0e8ed; overflow-wrap: anywhere; }
+    .muted { color: #5c6f7e; font-size: 14px; }
+    .error { color: #a62020; padding: 12px 0; }
+    #map { min-width: 0; min-height: 0; height: 100%; }
+    @media (max-width: 750px) {
+      html, body { height: auto; }
+      body { display: block; overflow: auto; }
+      header { padding: 18px 20px; }
+      .layout { display: flex; flex-direction: column; }
+      aside { overflow: visible; padding: 18px 20px; }
+      #map { height: 55dvh; min-height: 350px; }
+    }
+    @media (max-width: 350px) { .row { grid-template-columns: minmax(0, 1fr) 110px; } }
   </style>
 </head>
 <body>
@@ -24,6 +51,7 @@
 <script>
 const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[-98,39],zoom:3});
 map.addControl(new maplibregl.NavigationControl(),'top-right');
+new ResizeObserver(()=>map.resize()).observe(document.getElementById('map'));
 let markers=[];
 const result=document.getElementById('result'),button=document.getElementById('submit');
 const citiesByState=JSON.parse(document.getElementById('cities-by-state').textContent);
