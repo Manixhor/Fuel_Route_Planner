@@ -1,0 +1,32 @@
+{
+  "info": {
+    "name": "Fuel Route Planner",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Sample requests for the Django fuel route assessment"
+  },
+  "variable": [{"key": "base_url", "value": "http://127.0.0.1:8000"}],
+  "item": [
+    {
+      "name": "Dallas to Atlanta (multiple fuel stops)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"start\": {\"city\": \"Dallas\", \"state\": \"TX\"},\n  \"finish\": {\"city\": \"Atlanta\", \"state\": \"GA\"}\n}"},
+        "url": "{{base_url}}/api/route/"
+      }
+    },
+    {
+      "name": "Los Angeles to Las Vegas (one tank)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"start\": {\"city\": \"Los Angeles\", \"state\": \"CA\"},\n  \"finish\": {\"city\": \"Las Vegas\", \"state\": \"NV\"}\n}"},
+        "url": "{{base_url}}/api/route/"
+      }
+    },
+    {
+      "name": "Health",
+      "request": {"method": "GET", "url": "{{base_url}}/api/health/"}
+    }
+  ]
+}
