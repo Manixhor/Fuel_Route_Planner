@@ -4,3 +4,4 @@ __pycache__/
 .pytest_cache/
 db.sqlite3
 .env
+fuel-route-planner-submission.zip
