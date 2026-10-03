@@ -12,7 +12,7 @@ python3.12 -m venv .venv
 .venv/bin/python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000/` for the map, or use the API from Postman. No database migration or API key is needed. Internet access is needed for the OSRM demo route service and the map tiles.
+Open `http://127.0.0.1:8000/` for the map, or use the API from Postman. No database migration or API key is needed. Internet access is needed for the OSRM demo route service and OpenFreeMap map tiles.
 
 ## API
 
@@ -67,6 +67,7 @@ The price CSV has 8,151 rows, including Canadian entries and duplicate OPIS IDs.
 - [Django downloads](https://www.djangoproject.com/download/) for the current stable version.
 - [OSRM route API documentation](https://project-osrm.org/docs/v5.24.0/api/) and [demo server use policy](https://github.com/Project-OSRM/osrm-backend/wiki/Demo-server).
 - [GeoNames US postal data](https://download.geonames.org/export/zip/US.zip), used offline under the [GeoNames attribution license](https://www.geonames.org/export/).
+- [OpenFreeMap](https://openfreemap.org/) and [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) for the interactive demo map.
 - Fuel prices: assignment attachment, included unmodified in `data/fuel_prices_original.csv`.
 
 ## Five-minute demo outline

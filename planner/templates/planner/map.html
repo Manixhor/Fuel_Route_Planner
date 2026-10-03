@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Fuel Route Planner</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzxksAzQ1gTt7w7pcK1U72gY=" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css">
   <style>
     *{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#17263c;font:16px/1.45 system-ui,-apple-system,sans-serif}header{background:#15324a;color:white;padding:20px 28px}header h1{margin:0;font-size:24px}header p{margin:4px 0 0;color:#c4d9e5}.layout{display:grid;grid-template-columns:minmax(290px,360px) 1fr;min-height:calc(100vh - 88px)}aside{padding:22px;background:white;box-shadow:2px 0 8px #142b3e16;z-index:1}label{display:block;font-weight:650;margin:14px 0 5px}input{width:100%;padding:10px;border:1px solid #b8c8d4;border-radius:6px;font:inherit}.row{display:grid;grid-template-columns:1fr 70px;gap:8px}button{width:100%;margin-top:20px;padding:12px;border:0;border-radius:6px;background:#087d70;color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6}.metric{margin-top:20px;padding:15px;background:#eaf5f2;border-radius:8px}.metric strong{font-size:26px;color:#075c52}.stop{padding:12px 0;border-bottom:1px solid #e0e8ed}.muted{color:#5c6f7e;font-size:14px}.error{color:#a62020;padding:12px 0}#map{height:calc(100vh - 88px);min-height:450px}@media(max-width:750px){.layout{display:block}#map{height:55vh;min-height:350px}}
   </style>
@@ -19,24 +19,38 @@
   </form>
   <div id="result" aria-live="polite"><p class="muted">Choose two US cities, then plan a route.</p></div>
 </aside><div id="map" role="img" aria-label="Route map"></div></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
 <script>
-const map=L.map('map').setView([39,-98],4);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-let routeLayer=null,markers=[];
+const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[-98,39],zoom:3});
+map.addControl(new maplibregl.NavigationControl(),'top-right');
+let markers=[];
 const result=document.getElementById('result'),button=document.getElementById('submit');
+function drawRoute(data){
+  const geometry=data.route.geometry;
+  const feature={type:'Feature',properties:{},geometry};
+  const update=()=>{
+    if(map.getSource('route'))map.getSource('route').setData(feature);
+    else{map.addSource('route',{type:'geojson',data:feature});map.addLayer({id:'route-line',type:'line',source:'route',paint:{'line-color':'#087d70','line-width':5}})}
+  };
+  if(map.isStyleLoaded())update();else map.once('load',update);
+  markers.forEach(marker=>marker.remove());markers=[];
+  const marker=(longitude,latitude,color,label)=>{
+    const popup=document.createElement('div');popup.textContent=label;
+    markers.push(new maplibregl.Marker({color}).setLngLat([longitude,latitude]).setPopup(new maplibregl.Popup().setDOMContent(popup)).addTo(map));
+  };
+  marker(data.start.longitude,data.start.latitude,'#15324a','Start');
+  marker(data.finish.longitude,data.finish.latitude,'#15324a','Finish');
+  data.fuel_stops.forEach((stop,index)=>marker(stop.longitude,stop.latitude,'#e09624',`${index+1}. ${stop.name}, ${stop.city}, ${stop.state} — $${stop.price_per_gallon.toFixed(3)}/gal`));
+  const bounds=geometry.coordinates.reduce((box,coordinate)=>box.extend(coordinate),new maplibregl.LngLatBounds());
+  map.fitBounds(bounds,{padding:35,maxZoom:11});
+}
 document.getElementById('route-form').addEventListener('submit',async event=>{
   event.preventDefault();button.disabled=true;result.textContent='Finding route…';
   const body={start:{city:document.getElementById('start-city').value,state:document.getElementById('start-state').value},finish:{city:document.getElementById('finish-city').value,state:document.getElementById('finish-state').value}};
   try{
     const response=await fetch('/api/route/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await response.json();if(!response.ok)throw Error(data.error||'Route failed');
-    if(routeLayer)map.removeLayer(routeLayer);markers.forEach(marker=>map.removeLayer(marker));markers=[];
-    routeLayer=L.geoJSON(data.route.geometry,{style:{color:'#087d70',weight:5}}).addTo(map);
-    map.fitBounds(routeLayer.getBounds(),{padding:[25,25]});
-    markers.push(L.marker([data.start.latitude,data.start.longitude]).addTo(map).bindPopup('Start'));
-    markers.push(L.marker([data.finish.latitude,data.finish.longitude]).addTo(map).bindPopup('Finish'));
-    data.fuel_stops.forEach((stop,index)=>markers.push(L.circleMarker([stop.latitude,stop.longitude],{radius:9,color:'#b66a13',fillColor:'#f4ab36',fillOpacity:1}).addTo(map).bindPopup(`${index+1}. ${stop.name}<br>${stop.city}, ${stop.state}<br>$${stop.price_per_gallon.toFixed(3)}/gal`)));
+    drawRoute(data);
     const summary=data.fuel_summary;
     result.className='';result.replaceChildren();
     const metric=document.createElement('div');metric.className='metric';metric.innerHTML=`<strong>$${summary.total_money_spent_usd.toFixed(2)}</strong><br>Estimated trip fuel cost<br><span class="muted">${data.route.distance_miles.toFixed(1)} miles · ${data.fuel_stops.length} roadside stop${data.fuel_stops.length===1?'':'s'}</span>`;result.append(metric);
